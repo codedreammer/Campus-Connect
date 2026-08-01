@@ -72,5 +72,5 @@ campus-connect/
 ## 👥 Team
 
 - Akshay Anand
-- Abhishak Kumar 
-- Ashiven Yadav
+- Abhishek Kumar
+- Ashwin Yadav
