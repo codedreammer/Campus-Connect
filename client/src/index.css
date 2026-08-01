@@ -41,7 +41,7 @@
     @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate;
   }
   .card {
-    @apply rounded-2xl border border-ink-100 bg-white shadow-sm;
+    @apply rounded-2xl border border-ink-100 bg-white shadow-sm transition-shadow duration-200;
   }
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
