@@ -1,13 +1,16 @@
 import mongoose from "mongoose";
 
+// A User can be a student, coordinator, or administrator. This model is
+// referenced by Club, Event, Registration, Attendance, Certificate, and
+// Notification through ObjectId fields in their respective schemas.
 const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
       required: [true, "Full name is required"],
       trim: true,
-      minlength: 2,
-      maxlength: 100,
+      minlength: [2, "Full name must be at least 2 characters long"],
+      maxlength: [100, "Full name cannot exceed 100 characters"],
     },
 
     email: {
@@ -16,12 +19,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: [254, "Email cannot exceed 254 characters"],
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
     },
 
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: 6,
+      minlength: [8, "Password must be at least 8 characters long"],
       select: false,
     },
 
@@ -32,20 +37,30 @@ const userSchema = new mongoose.Schema(
     },
 
     avatar: {
-      public_id: {
-        type: String,
-        default: "",
-      },
-      url: {
-        type: String,
-        default: "",
-      },
+      type: new mongoose.Schema(
+        {
+          public_id: {
+            type: String,
+            trim: true,
+            default: "",
+          },
+          url: {
+            type: String,
+            trim: true,
+            default: "",
+          },
+        },
+        { _id: false }
+      ),
+      default: () => ({}),
     },
 
     phone: {
       type: String,
       trim: true,
       default: "",
+      maxlength: [20, "Phone number cannot exceed 20 characters"],
+      match: [/^(|[0-9+()\-\s]+)$/, "Please provide a valid phone number"],
     },
 
     isVerified: {
@@ -60,6 +75,7 @@ const userSchema = new mongoose.Schema(
 
     lastLogin: {
       type: Date,
+      default: null,
     },
   },
   {
@@ -67,6 +83,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+// Supports role- and status-based user administration queries.
+userSchema.index({ role: 1, isActive: 1 });
+
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default User;
