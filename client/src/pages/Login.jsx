@@ -1,32 +1,37 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-
-const ROLES = [
-  { value: "student", label: "Student" },
-  { value: "coordinator", label: "Club Coordinator" },
-  { value: "admin", label: "Admin" },
-];
+import { getErrorMessage } from "../services/api.js";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "", role: "student" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setError("");
+
     if (!form.email || !form.password) {
       setError("Enter your email and password.");
       return;
     }
-    // TODO: replace with authAPI.login(form) once the backend is live.
-    const user = login({ email: form.email, role: form.role });
-    navigate(`/${user.role}`);
+
+    setSubmitting(true);
+    try {
+      const user = await login({ email: form.email, password: form.password });
+      navigate(`/${user.role}`);
+    } catch (err) {
+      setError(getErrorMessage(err, "Invalid email or password."));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -45,26 +50,6 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="label" htmlFor="role">Log in as</label>
-              <div className="grid grid-cols-3 gap-2">
-                {ROLES.map((r) => (
-                  <button
-                    type="button"
-                    key={r.value}
-                    onClick={() => setForm((f) => ({ ...f, role: r.value }))}
-                    className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
-                      form.role === r.value
-                        ? "border-amber-500 bg-amber-50 text-amber-600"
-                        : "border-ink-100 text-slate hover:bg-ink-50"
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
               <label className="label" htmlFor="email">Email</label>
               <input
                 id="email"
@@ -74,6 +59,7 @@ export default function Login() {
                 placeholder="you@iitj.ac.in"
                 value={form.email}
                 onChange={handleChange}
+                autoComplete="email"
               />
             </div>
 
@@ -87,18 +73,16 @@ export default function Login() {
                 placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
+                autoComplete="current-password"
               />
             </div>
 
             {error && <p className="text-sm text-coral-600">{error}</p>}
 
-            <button type="submit" className="btn-primary w-full">Log in</button>
+            <button type="submit" className="btn-primary w-full" disabled={submitting}>
+              {submitting ? "Logging in…" : "Log in"}
+            </button>
           </form>
-
-          <p className="mt-5 text-center text-xs text-slate">
-            No backend yet — this logs you in instantly as the selected role so you
-            can build and demo the UI.
-          </p>
         </div>
 
         <p className="mt-5 text-center text-sm text-slate">

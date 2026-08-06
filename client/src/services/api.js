@@ -1,27 +1,28 @@
 import axios from "axios";
-
-// Points at Akshay's Express API once it exists. Set VITE_API_URL in a .env
-// file, e.g. VITE_API_URL=http://localhost:5000/api
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
   headers: { "Content-Type": "application/json" },
+  withCredentials: true, // required: backend sends the auth token as an HTTP-only cookie
 });
 
-// Attach JWT automatically once real auth exists.
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("campusconnect_token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-// --- Stub endpoint functions -------------------------------------------
-// These map 1:1 to routes the backend will eventually expose. Every page
-// currently reads from src/data/mockData.js instead; swap the mock call
-// for the matching function below once the API is live.
+// Pulls a readable message out of an axios error, whatever shape the
+// backend sends it in (message string, errors array, or plain text).
+export function getErrorMessage(error, fallback = "Something went wrong. Please try again.") {
+  const data = error?.response?.data;
+  if (!data) return error?.message || fallback;
+  if (typeof data === "string") return data;
+  if (data.message) return data.message;
+  if (Array.isArray(data.errors) && data.errors.length) {
+    return data.errors.map((e) => e.message || e.msg || e).join(" ");
+  }
+  return fallback;
+}
 
 export const authAPI = {
-  login: (data) => api.post("/auth/login", data),
   register: (data) => api.post("/auth/register", data),
+  login: (data) => api.post("/auth/login", data),
+  logout: () => api.post("/auth/logout"),
+  me: () => api.get("/auth/me"),
 };
 
 export const eventsAPI = {
