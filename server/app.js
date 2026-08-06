@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 
+import authRoutes from "./routes/auth.routes.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
 
 const app = express();
@@ -28,6 +29,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
+
+app.use("/api/v1/auth", authRoutes);
 
 // Health-check endpoint used to confirm that the API process is available.
 app.get("/", (req, res) => {
