@@ -1,25 +1,72 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout.jsx";
 import StatCard from "../../components/ui/StatCard.jsx";
 import EventTicketCard from "../../components/ui/EventTicketCard.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { myRegisteredEvents, mockEvents, notifications } from "../../data/mockData.js";
+import { eventsAPI, registrationsAPI, certificatesAPI } from "../../services/api.js";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const upcomingForYou = mockEvents.filter((e) => e.status === "upcoming").slice(0, 2);
+  const [registrations, setRegistrations] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
+  const [certificatesCount, setCertificatesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStudentData() {
+      try {
+        setLoading(true);
+        const [regsRes, eventsRes, certsRes] = await Promise.allSettled([
+          registrationsAPI.myRegistrations(),
+          eventsAPI.getAll(),
+          certificatesAPI.myCertificates(),
+        ]);
+
+        if (regsRes.status === "fulfilled") {
+          const list = regsRes.value.data?.data || regsRes.value.data || [];
+          setRegistrations(list);
+        }
+
+        if (eventsRes.status === "fulfilled") {
+          const list = eventsRes.value.data?.data || eventsRes.value.data || [];
+          setAllEvents(list);
+        }
+
+        if (certsRes.status === "fulfilled") {
+          const list = certsRes.value.data?.data || certsRes.value.data || [];
+          setCertificatesCount(list.length);
+        }
+      } catch {
+        // silent error fallback
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadStudentData();
+  }, []);
+
+  const registeredEventIds = new Set(
+    registrations.map((r) => (typeof r.event === "object" ? r.event?._id : r.event))
+  );
+
+  const recommendedEvents = allEvents
+    .filter((e) => !registeredEventIds.has(e._id || e.id))
+    .slice(0, 2);
+
+  const registeredTickets = registrations.map((r) => r.event).filter(Boolean);
 
   return (
     <DashboardLayout
       role="student"
-      title={`Welcome back, ${user?.name || "Student"}`}
+      title={`Welcome back, ${user?.fullName || user?.name || "Student"}`}
       subtitle="Here's what's happening with your events."
     >
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Registered events" value={myRegisteredEvents.length} icon="🎟️" accent="amber" />
-        <StatCard label="Certificates earned" value={1} icon="🏅" accent="teal" />
-        <StatCard label="Unread notifications" value={notifications.filter((n) => !n.read).length} icon="🔔" accent="coral" />
+        <StatCard label="Registered events" value={registrations.length} icon="🎟️" accent="amber" />
+        <StatCard label="Certificates earned" value={certificatesCount} icon="🏅" accent="teal" />
+        <StatCard label="Available events" value={allEvents.length} icon="🔔" accent="coral" />
       </div>
 
       <section className="mt-8">
@@ -29,11 +76,19 @@ export default function StudentDashboard() {
             View all →
           </Link>
         </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {myRegisteredEvents.map((event) => (
-            <EventTicketCard key={event.id} event={event} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="card p-6 text-center text-sm text-slate">Loading tickets...</div>
+        ) : registeredTickets.length === 0 ? (
+          <div className="card p-6 text-center text-sm text-slate">
+            You haven't registered for any events yet. Check out recommended events below!
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {registeredTickets.slice(0, 2).map((event) => (
+              <EventTicketCard key={event._id || event.id} event={event} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mt-10">
@@ -43,11 +98,17 @@ export default function StudentDashboard() {
             Browse all events →
           </Link>
         </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {upcomingForYou.map((event) => (
-            <EventTicketCard key={event.id} event={event} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="card p-6 text-center text-sm text-slate">Loading recommended events...</div>
+        ) : recommendedEvents.length === 0 ? (
+          <div className="card p-6 text-center text-sm text-slate">No new events recommended at this time.</div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {recommendedEvents.map((event) => (
+              <EventTicketCard key={event._id || event.id} event={event} />
+            ))}
+          </div>
+        )}
       </section>
     </DashboardLayout>
   );

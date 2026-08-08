@@ -1,26 +1,42 @@
 import React, { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { usersAPI, getErrorMessage } from "../../services/api.js";
 
 export default function StudentProfile() {
   const { user } = useAuth();
   const [form, setForm] = useState({
-    name: user?.name || "",
+    name: user?.fullName || user?.name || "",
     email: user?.email || "",
     branch: "",
     year: "2nd Year",
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setSaved(false);
+    setError("");
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault();
-    // TODO: replace with usersAPI.update(user.id, form)
-    setSaved(true);
+    if (!form.name.trim()) return;
+    try {
+      setSaving(true);
+      setError("");
+      const userId = user?._id || user?.id;
+      if (userId) {
+        await usersAPI.update(userId, { fullName: form.name.trim() });
+      }
+      setSaved(true);
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to save profile changes."));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -43,7 +59,7 @@ export default function StudentProfile() {
           </div>
           <div>
             <label className="label" htmlFor="email">Email</label>
-            <input id="email" name="email" className="input" value={form.email} onChange={handleChange} />
+            <input id="email" name="email" className="input" value={form.email} onChange={handleChange} readOnly />
           </div>
           <div>
             <label className="label" htmlFor="branch">Branch</label>

@@ -4,6 +4,13 @@ import cors from "cors";
 import express from "express";
 
 import authRoutes from "./routes/auth.routes.js";
+import clubRoutes from "./routes/club.routes.js";
+import eventRoutes from "./routes/event.routes.js";
+import registrationRoutes from "./routes/registration.routes.js";
+import attendanceRoutes from "./routes/attendance.routes.js";
+import certificateRoutes from "./routes/certificate.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
 
 const app = express();
@@ -31,6 +38,13 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/clubs", clubRoutes);
+app.use("/api/v1/events", eventRoutes);
+app.use("/api/v1/registrations", registrationRoutes);
+app.use("/api/v1/attendance", attendanceRoutes);
+app.use("/api/v1/certificates", certificateRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 // Health-check endpoint used to confirm that the API process is available.
 app.get("/", (req, res) => {

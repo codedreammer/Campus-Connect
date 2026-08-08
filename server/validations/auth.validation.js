@@ -42,10 +42,15 @@ export const validateRegister = (req, res, next) => {
     return next(validationError(errors));
   }
 
+  const allowedRole = ["student", "coordinator", "admin"].includes(req.body.role)
+    ? req.body.role
+    : undefined;
+
   req.body = {
     fullName: normalizedName,
     email: normalizedEmail,
     password,
+    ...(allowedRole ? { role: allowedRole } : {}),
     ...(normalizedPhone ? { phone: normalizedPhone } : {}),
   };
 

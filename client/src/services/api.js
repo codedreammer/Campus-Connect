@@ -1,4 +1,5 @@
 import axios from "axios";
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
   headers: { "Content-Type": "application/json" },
@@ -27,6 +28,7 @@ export const authAPI = {
 
 export const eventsAPI = {
   getAll: (params) => api.get("/events", { params }),
+  getCoordinatorEvents: () => api.get("/events/coordinator/my-events"),
   getById: (id) => api.get(`/events/${id}`),
   create: (data) => api.post("/events", data),
   update: (id, data) => api.put(`/events/${id}`, data),
@@ -34,25 +36,41 @@ export const eventsAPI = {
 };
 
 export const registrationsAPI = {
-  register: (eventId) => api.post(`/events/${eventId}/register`),
+  register: (eventId) => api.post(`/registrations/events/${eventId}/register`),
   myRegistrations: () => api.get("/registrations/me"),
-  markAttendance: (registrationId) =>
-    api.post(`/registrations/${registrationId}/attendance`),
+  cancel: (id) => api.delete(`/registrations/${id}`),
+  getParticipants: (eventId = "all") => api.get(`/registrations/event/${eventId}`),
+  updateStatus: (id, status) => api.patch(`/registrations/${id}/status`, { status }),
+};
+
+export const attendanceAPI = {
+  markAttendance: (ticketId) => api.post("/attendance/mark", { ticketId }),
+  markByRegistrationId: (registrationId) => api.post(`/attendance/${registrationId}`),
+  getEventAttendance: (eventId) => api.get(`/attendance/event/${eventId}`),
 };
 
 export const clubsAPI = {
   getAll: () => api.get("/clubs"),
   create: (data) => api.post("/clubs", data),
+  update: (id, data) => api.put(`/clubs/${id}`, data),
+  remove: (id) => api.delete(`/clubs/${id}`),
 };
 
 export const usersAPI = {
-  getAll: () => api.get("/users"),
+  getAll: (params) => api.get("/users", { params }),
   update: (id, data) => api.put(`/users/${id}`, data),
 };
 
 export const certificatesAPI = {
   myCertificates: () => api.get("/certificates/me"),
-  upload: (eventId, data) => api.post(`/certificates/${eventId}`, data),
+  issue: (data) => api.post("/certificates/issue", data),
+  upload: (eventId, data) => api.post(`/certificates/${eventId}`, { eventId, ...data }),
+  verify: (code) => api.get(`/certificates/verify/${code}`),
+};
+
+export const adminAPI = {
+  getStats: () => api.get("/admin/stats"),
+  getReports: () => api.get("/admin/reports"),
 };
 
 export default api;

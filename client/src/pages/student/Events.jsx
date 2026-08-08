@@ -1,29 +1,77 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout.jsx";
 import EventTicketCard from "../../components/ui/EventTicketCard.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
-import { mockEvents } from "../../data/mockData.js";
+import { eventsAPI, registrationsAPI, getErrorMessage } from "../../services/api.js";
 
-const CATEGORIES = ["All", "Tech", "Cultural", "Business", "Arts", "Sports"];
+const CATEGORIES = ["All", "Workshop", "Hackathon", "Seminar", "Competition", "Cultural", "Sports"];
 
 export default function StudentEvents() {
+  const [events, setEvents] = useState([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [registeredIds, setRegisteredIds] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [registeringId, setRegisteringId] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const [eventsRes, regsRes] = await Promise.allSettled([
+        eventsAPI.getAll(),
+        registrationsAPI.myRegistrations(),
+      ]);
+
+      if (eventsRes.status === "fulfilled") {
+        const list = eventsRes.value.data?.data || eventsRes.value.data || [];
+        setEvents(list);
+      }
+
+      if (regsRes.status === "fulfilled") {
+        const regs = regsRes.value.data?.data || regsRes.value.data || [];
+        const registeredEventIds = new Set(
+          regs.map((r) => (typeof r.event === "object" ? r.event?._id : r.event))
+        );
+        setRegisteredIds(registeredEventIds);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to load events."));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filtered = useMemo(() => {
-    return mockEvents.filter((e) => {
+    return events.filter((e) => {
+      const clubName = typeof e.club === "object" ? e.club?.name : e.club || "";
       const matchesQuery =
-        e.title.toLowerCase().includes(query.toLowerCase()) ||
-        e.club.toLowerCase().includes(query.toLowerCase());
+        e.title?.toLowerCase().includes(query.toLowerCase()) ||
+        clubName.toLowerCase().includes(query.toLowerCase());
       const matchesCategory = category === "All" || e.category === category;
       return matchesQuery && matchesCategory;
     });
-  }, [query, category]);
+  }, [events, query, category]);
 
-  function handleRegister(id) {
-    // TODO: replace with registrationsAPI.register(id)
-    setRegisteredIds((prev) => new Set(prev).add(id));
+  async function handleRegister(id) {
+    try {
+      setRegisteringId(id);
+      setError("");
+      await registrationsAPI.register(id);
+      setRegisteredIds((prev) => new Set(prev).add(id));
+      // Refresh events to get updated registeredCount
+      fetchData();
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not register for event."));
+    } finally {
+      setRegisteringId(null);
+    }
   }
 
   return (
@@ -32,6 +80,8 @@ export default function StudentEvents() {
       title="Browse events"
       subtitle="Find events across every club on campus and grab your seat."
     >
+      {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <input
           className="input sm:max-w-xs"
@@ -56,7 +106,9 @@ export default function StudentEvents() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="card p-8 text-center text-sm text-slate">Loading events...</div>
+      ) : filtered.length === 0 ? (
         <EmptyState
           title="No events match your search"
           description="Try a different keyword or clear the category filter."
@@ -64,19 +116,26 @@ export default function StudentEvents() {
       ) : (
         <div className="grid gap-5 md:grid-cols-2">
           {filtered.map((event) => {
-            const isRegistered = registeredIds.has(event.id);
-            const isFull = event.registered >= event.seats;
+            const eventId = event._id || event.id;
+            const isRegistered = registeredIds.has(eventId);
+            const registeredCount = event.registeredCount ?? event.registered ?? 0;
+            const maxParticipants = event.maxParticipants ?? event.seats ?? 100;
+            const isFull = registeredCount >= maxParticipants;
+            const isSubmitting = registeringId === eventId;
+
             return (
               <EventTicketCard
-                key={event.id}
+                key={eventId}
                 event={event}
                 footer={
                   <button
-                    disabled={isRegistered || isFull || event.status === "completed"}
-                    onClick={() => handleRegister(event.id)}
+                    disabled={isRegistered || isFull || event.status === "completed" || isSubmitting}
+                    onClick={() => handleRegister(eventId)}
                     className={isRegistered ? "btn-secondary w-full" : "btn-primary w-full"}
                   >
-                    {event.status === "completed"
+                    {isSubmitting
+                      ? "Registering..."
+                      : event.status === "completed"
                       ? "Event completed"
                       : isRegistered
                       ? "Registered ✓"

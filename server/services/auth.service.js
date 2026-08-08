@@ -27,7 +27,7 @@ export const toPublicUser = (user) => ({
   updatedAt: user.updatedAt,
 });
 
-export const registerUser = async ({ fullName, email, password, phone }) => {
+export const registerUser = async ({ fullName, email, password, role, phone }) => {
   const normalizedEmail = email.trim().toLowerCase();
   const existingUser = await User.exists({ email: normalizedEmail });
 
@@ -41,6 +41,7 @@ export const registerUser = async ({ fullName, email, password, phone }) => {
       fullName,
       email: normalizedEmail,
       password: passwordHash,
+      ...(role ? { role } : {}),
       ...(phone ? { phone } : {}),
     });
 

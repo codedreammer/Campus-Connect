@@ -2,11 +2,15 @@ import React from "react";
 import StatusBadge from "./StatusBadge.jsx";
 
 const CATEGORY_DOT = {
-  Tech: "bg-amber-500",
+  Workshop: "bg-amber-500",
+  Hackathon: "bg-teal-500",
+  Seminar: "bg-ink-500",
+  Competition: "bg-coral-500",
   Cultural: "bg-teal-500",
-  Business: "bg-ink-500",
-  Arts: "bg-coral-500",
   Sports: "bg-slate",
+  Tech: "bg-amber-500",
+  Arts: "bg-coral-500",
+  Business: "bg-ink-500",
 };
 
 /**
@@ -16,9 +20,18 @@ const CATEGORY_DOT = {
  * product is built around.
  */
 export default function EventTicketCard({ event, footer }) {
-  const seatsLeft = event.seats - event.registered;
-  const pctFull = Math.min(100, Math.round((event.registered / event.seats) * 100));
+  const clubName = typeof event.club === "object" ? event.club?.name : event.club || "Campus Club";
+  const seats = event.maxParticipants ?? event.seats ?? 100;
+  const registered = event.registeredCount ?? event.registered ?? 0;
+  const seatsLeft = Math.max(0, seats - registered);
+  const pctFull = Math.min(100, Math.round((registered / seats) * 100));
   const dot = CATEGORY_DOT[event.category] || "bg-slate";
+  const dateDisplay = event.eventDate
+    ? new Date(event.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : event.date || "TBD";
+  const timeDisplay = event.startTime || event.time || "09:00 AM";
+  const venueDisplay = event.venue || "Campus Venue";
+  const idDisplay = (event._id || event.id || "CC").toString().substring(0, 6);
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
@@ -27,13 +40,13 @@ export default function EventTicketCard({ event, footer }) {
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-600">
               <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-              {event.club}
+              {clubName}
             </p>
             <h3 className="mt-1 truncate font-display text-lg font-semibold text-ink-700">
               {event.title}
             </h3>
           </div>
-          <StatusBadge status={event.status} />
+          <StatusBadge status={event.status || "upcoming"} />
         </div>
 
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate">
@@ -42,15 +55,15 @@ export default function EventTicketCard({ event, footer }) {
 
         <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-ink-50/60 p-3 text-xs">
           <div>
-            <p className="font-semibold text-ink-700">{event.date}</p>
+            <p className="font-semibold text-ink-700">{dateDisplay}</p>
             <p className="mt-0.5 text-slate">Date</p>
           </div>
           <div>
-            <p className="font-semibold text-ink-700">{event.time}</p>
+            <p className="font-semibold text-ink-700">{timeDisplay}</p>
             <p className="mt-0.5 text-slate">Time</p>
           </div>
           <div className="min-w-0">
-            <p className="truncate font-semibold text-ink-700">{event.venue}</p>
+            <p className="truncate font-semibold text-ink-700">{venueDisplay}</p>
             <p className="mt-0.5 text-slate">Venue</p>
           </div>
         </div>
@@ -81,7 +94,7 @@ export default function EventTicketCard({ event, footer }) {
         <span className="font-mono text-[10px] uppercase tracking-widest text-slate">
           {event.category}
         </span>
-        <span className="font-mono text-[10px] text-slate">#{event.id.toUpperCase()}</span>
+        <span className="font-mono text-[10px] text-slate">#{idDisplay.toUpperCase()}</span>
       </div>
     </div>
   );
