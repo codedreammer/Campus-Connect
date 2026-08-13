@@ -11,7 +11,8 @@ export default function CreateEvent() {
     title: "",
     category: "Workshop",
     date: "",
-    time: "",
+    startTime: "",
+    endTime: "",
     venue: "",
     seats: "",
     description: "",
@@ -24,11 +25,18 @@ export default function CreateEvent() {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+    setError("");
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (form.startTime && form.endTime && form.endTime <= form.startTime) {
+      setError("End time must be after start time.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -36,7 +44,8 @@ export default function CreateEvent() {
         title: form.title,
         category: form.category,
         eventDate: form.date,
-        startTime: form.time || "09:00",
+        startTime: form.startTime,
+        endTime: form.endTime,
         venue: form.venue,
         maxParticipants: Number(form.seats) || 100,
         description: form.description || form.title,
@@ -75,14 +84,18 @@ export default function CreateEvent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="label" htmlFor="date">Date</label>
             <input id="date" name="date" type="date" required className="input" value={form.date} onChange={handleChange} />
           </div>
           <div>
-            <label className="label" htmlFor="time">Time (HH:MM 24-hr)</label>
-            <input id="time" name="time" type="time" required className="input" value={form.time} onChange={handleChange} />
+            <label className="label" htmlFor="startTime">Start Time</label>
+            <input id="startTime" name="startTime" type="time" required className="input" value={form.startTime} onChange={handleChange} />
+          </div>
+          <div>
+            <label className="label" htmlFor="endTime">End Time</label>
+            <input id="endTime" name="endTime" type="time" required className="input" value={form.endTime} onChange={handleChange} />
           </div>
         </div>
 
