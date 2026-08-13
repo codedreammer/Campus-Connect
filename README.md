@@ -1,273 +1,268 @@
-# 🎓 Campus Connect
+# Campus Connect
 
-Campus Connect is a full-stack MERN platform for managing college clubs, events, registrations, attendance, certificates, and notifications in one place. It provides separate workflows for students, club coordinators, and administrators with secure role-based access.
+Campus Connect is a full-stack campus event-management platform. It gives students, club coordinators, and administrators a shared place to manage clubs, events, registrations, attendance, and certificates.
 
-## 🌐 Live Application
+The application consists of a React single-page client and an Express/MongoDB API. Authentication uses JWTs stored in HTTP-only cookies, with role-based access control for protected workflows.
 
-* **Frontend:** https://campus-connect-three-opal.vercel.app
-* **Backend API:** https://campus-connect-0o0no.onrender.com
-* **API Base Path:** `/api/v1`
+## Contents
 
-> The frontend is deployed on Vercel, the backend API is deployed on Render, and application data is stored in MongoDB Atlas.
+- [Features](#features)
+- [Technology](#technology)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Database seeding](#database-seeding)
+- [Available scripts](#available-scripts)
+- [API reference](#api-reference)
+- [Security notes](#security-notes)
 
-## ✨ Features
+## Features
 
-### 👨‍🎓 Student
+| Role | Capabilities |
+| --- | --- |
+| **Student** | Create an account, browse events, register or cancel a registration, view event tickets, and access issued certificates. |
+| **Coordinator** | Create and manage events, review participant lists, record attendance using a ticket code or registration ID, and issue certificates to eligible attendees. |
+| **Administrator** | View platform statistics, manage users and clubs, manage any event, and access administrative reports. |
 
-* Register and log in securely
-* Browse published events
-* View event details
-* Register and cancel event registrations
-* View registered/upcoming events
-* QR-based event tickets
-* View notifications
-* View and verify certificates
-* Manage profile information
+Additional platform capabilities include:
 
-### 🧑‍💼 Club Coordinator
+- Public event and club discovery
+- Capacity-aware event registration with unique ticket codes
+- Attendance tracking for registered participants
+- Certificate issuance and public certificate verification
+- Persistent MongoDB models for users, clubs, events, registrations, attendance, certificates, and notifications
 
-* Create, update, and delete events
-* Manage event registrations
-* View event participants
-* Mark attendance
-* Issue/upload certificates
-* View coordinator event information
+## Technology
 
-### 👨‍💻 Administrator
+| Area | Tools |
+| --- | --- |
+| Client | React 19, React Router, Vite, Axios, Tailwind CSS |
+| Server | Node.js 20+, Express 5, Mongoose |
+| Database | MongoDB (Atlas or a local MongoDB instance) |
+| Authentication | JSON Web Tokens, HTTP-only cookies, bcryptjs |
+| Tooling | Nodemon, oxlint, PostCSS, Autoprefixer |
 
-* View platform statistics
-* Manage users
-* Manage clubs
-* Manage events
-* Access reports and administrative operations
-
-## 🛠️ Tech Stack
-
-### Frontend
-
-* React 19
-* React Router
-* Axios
-* Vite
-* Tailwind CSS
-
-### Backend
-
-* Node.js 20+
-* Express 5
-* MongoDB Atlas
-* Mongoose
-* JWT Authentication
-* HTTP-only Cookies
-* bcryptjs
-* CORS
-* Nodemailer
-* Cloudinary
-* QR Code Generation
-
-## 🔐 Authentication & Security
-
-* JWT access and refresh tokens
-* HTTP-only authentication cookies
-* Role-based authorization
-* Password hashing with bcryptjs
-* Configurable CORS policy
-* Environment-based production configuration
-* Database credentials and secrets kept outside the repository
-
-## 🗄️ Database
-
-The application uses MongoDB with the `campus_connect` database.
-
-Main collections:
-
-* `users`
-* `clubs`
-* `events`
-* `registrations`
-* `attendances`
-* `certificates`
-* `notifications`
-
-The project includes a repeatable database seed script for development and demonstration data.
-
-The seed operation is **idempotent**, meaning running it multiple times does not create duplicate records.
-
-### Seeded Data
-
-* 6 seeded users
-* 5 clubs
-* 7 events
-* 9 registrations
-* 2 attendance records
-* 1 certificate
-* 10 notifications
-
-Existing unchanged users are reused by the seed script.
-
-## 📁 Project Structure
+## Project structure
 
 ```text
 Campus-Connect/
-├── client/
-│   ├── public/
+├── client/                       # React + Vite single-page application
+│   ├── public/                   # Static assets
 │   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── data/
-│   │   ├── pages/
-│   │   └── services/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── server/
-│   ├── config/
-│   ├── constants/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── scripts/
-│   │   └── seed.js
-│   ├── utils/
-│   ├── app.js
-│   ├── server.js
+│   │   ├── components/           # Layout and reusable UI components
+│   │   ├── context/              # Authentication context
+│   │   ├── data/                 # Local mock data used by UI elements
+│   │   ├── pages/                # Public, student, coordinator, and admin pages
+│   │   └── services/api.js       # Axios API client
+│   ├── vercel.json               # SPA route-rewrite configuration
 │   └── package.json
-│
+├── server/                       # Express REST API
+│   ├── config/                   # MongoDB connection setup
+│   ├── constants/                # Roles, statuses, and notification types
+│   ├── controllers/              # Request handlers
+│   ├── middleware/               # Authentication, authorization, and errors
+│   ├── models/                   # Mongoose schemas
+│   ├── routes/                   # API route definitions
+│   ├── scripts/seed.js           # Repeatable demonstration-data seed
+│   ├── services/                 # Application and database logic
+│   ├── utils/                    # JWT, cookie, response, and error helpers
+│   ├── validations/              # Request validation
+│   ├── app.js                    # Express application configuration
+│   └── server.js                 # Server entry point
 ├── .gitignore
 └── README.md
 ```
 
-## 🚀 Local Setup
+## Getting started
 
-### 1. Clone the repository
+### Prerequisites
+
+- Node.js 20 or newer
+- npm
+- A MongoDB database (local or MongoDB Atlas)
+
+### 1. Clone and install dependencies
 
 ```bash
 git clone https://github.com/codedreammer/Campus-Connect.git
 cd Campus-Connect
-```
 
-### 2. Install frontend dependencies
+cd server
+npm install
 
-```bash
-cd client
+cd ../client
 npm install
 ```
 
-Create `client/.env`:
-
-```env
-VITE_API_URL=http://localhost:5000/api/v1
-```
-
-### 3. Install backend dependencies
-
-```bash
-cd ../server
-npm install
-```
+### 2. Configure the server
 
 Create `server/.env`:
 
-```env
+```dotenv
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-JWT_ACCESS_SECRET=your_access_secret_at_least_32_characters
-JWT_REFRESH_SECRET=your_refresh_secret_at_least_32_characters
-ACCESS_TOKEN_EXPIRES=15m
-REFRESH_TOKEN_EXPIRES=7d
-CLIENT_URL=http://localhost:5173
 NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/campus_connect
+CLIENT_URL=http://localhost:5173
+
+JWT_ACCESS_SECRET=replace-with-a-long-random-access-secret
+JWT_REFRESH_SECRET=replace-with-a-long-random-refresh-secret
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
 ```
 
-**Never commit `.env` files or real credentials to Git.**
+### 3. Configure the client
 
-### 4. Seed development data
+Create `client/.env`:
 
-From the `server` directory:
-
-```bash
-npm run seed
+```dotenv
+VITE_API_URL=http://localhost:5000/api/v1
 ```
 
-The seed script creates representative users, clubs, events, registrations, attendance records, certificates, and notifications without creating duplicates on repeated runs.
+### 4. Run the application
 
-### 5. Start the backend
+Start the API in one terminal:
 
 ```bash
+cd server
 npm run dev
 ```
 
-Backend:
-
-```text
-http://localhost:5000
-```
-
-### 6. Start the frontend
-
-In a second terminal:
+Start the client in another terminal:
 
 ```bash
 cd client
 npm run dev
 ```
 
-Frontend:
+Open the URL printed by Vite, normally `http://localhost:5173`. The API health check is available at `http://localhost:5000/`.
 
-```text
-http://localhost:5173
+## Environment variables
+
+### Server (`server/.env`)
+
+| Variable | Required | Purpose | Default |
+| --- | --- | --- | --- |
+| `PORT` | No | API port | `5000` |
+| `NODE_ENV` | Recommended | Runtime environment | — |
+| `MONGODB_URI` | Yes | MongoDB connection string | — |
+| `CLIENT_URL` | Yes | Exact browser-client origin allowed by CORS | `http://localhost:5173` |
+| `JWT_ACCESS_SECRET` | Yes | Secret used to sign access tokens | — |
+| `JWT_REFRESH_SECRET` | Yes | Secret used to sign refresh tokens | — |
+| `JWT_ACCESS_EXPIRES_IN` | No | Access-token lifetime | `15m` |
+| `JWT_REFRESH_EXPIRES_IN` | No | Refresh-token lifetime | `7d` |
+| `COOKIE_SAME_SITE` | No | Cookie policy: `lax`, `strict`, or `none` | `lax` |
+| `ACCESS_TOKEN_COOKIE_MAX_AGE` | No | Access-cookie lifetime in milliseconds | `900000` |
+| `REFRESH_TOKEN_COOKIE_MAX_AGE` | No | Refresh-cookie lifetime in milliseconds | `604800000` |
+| `BCRYPT_SALT_ROUNDS` | No | Password-hashing cost; accepted range is 10–14 | `12` |
+
+For a cross-site HTTPS deployment, set `NODE_ENV=production` and `COOKIE_SAME_SITE=none`. The server automatically marks cookies as secure in production and when `SameSite=None` is used.
+
+### Client (`client/.env`)
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `VITE_API_URL` | Recommended | API base URL, including `/api/v1` |
+
+If it is omitted, the client defaults to `http://localhost:5000/api/v1`.
+
+## Database seeding
+
+The server includes a repeatable seed script that adds demonstration clubs, events, registrations, attendance records, certificates, and notifications. It inserts records only when they do not already exist and synchronizes event registration counts.
+
+Before running it, note the following:
+
+- The script expects two pre-existing student accounts: `aarav@example.com` and `nkanal38@gmail.com`.
+- It requires `CLIENT_URL` to be an **HTTPS** frontend URL because it creates notification action links. A normal `http://localhost:5173` value will cause the script to stop before making changes.
+- Restore `CLIENT_URL=http://localhost:5173` before running the local browser client, so CORS allows it.
+
+Run the seed from the server directory:
+
+```bash
+cd server
+npm run seed
 ```
 
-## 📦 Production Deployment
+## Available scripts
 
-### Frontend — Vercel
+| Directory | Command | Description |
+| --- | --- | --- |
+| `server` | `npm run dev` | Start the API with Nodemon. |
+| `server` | `npm start` | Start the API with Node.js. |
+| `server` | `npm run seed` | Populate or reuse demonstration data. |
+| `client` | `npm run dev` | Start the Vite development server. |
+| `client` | `npm run build` | Create a production client build. |
+| `client` | `npm run lint` | Lint the client source with oxlint. |
+| `client` | `npm run preview` | Preview the production build locally. |
 
-Production environment variable:
+## API reference
 
-```env
-VITE_API_URL=https://campus-connect-0o0no.onrender.com/api/v1
-```
+All API routes are prefixed with `/api/v1`. Protected endpoints accept an access token from the HTTP-only `accessToken` cookie; the server also accepts a `Bearer` token in the `Authorization` header.
 
-### Backend — Render
+`Public` means no authentication is required. Role labels show the permitted authenticated roles.
 
-Production environment variables should include:
+### Authentication
 
-```env
-NODE_ENV=production
-CLIENT_URL=https://campus-connect-three-opal.vercel.app
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_ACCESS_SECRET=your_production_access_secret
-JWT_REFRESH_SECRET=your_production_refresh_secret
-```
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| `POST` | `/auth/register` | Public | Create an account and start a session. |
+| `POST` | `/auth/login` | Public | Sign in and set session cookies. |
+| `POST` | `/auth/refresh` | Public* | Refresh the session using the refresh-token cookie. |
+| `POST` | `/auth/logout` | Public | Clear authentication cookies. |
+| `GET` | `/auth/me` | Authenticated | Return the current user. |
 
-Production secrets must never be committed to Git.
+### Clubs and events
 
-## 🧪 Validation
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| `GET` | `/clubs` | Public | List clubs. |
+| `GET` | `/clubs/:id` | Public | Get a club by ID. |
+| `POST` | `/clubs` | Admin, coordinator | Create a club. |
+| `PUT` | `/clubs/:id` | Admin, coordinator | Update a club. |
+| `DELETE` | `/clubs/:id` | Admin | Delete a club. |
+| `GET` | `/events` | Public | List events; supports `category`, `status`, `coordinator`, and `search` query filters. |
+| `GET` | `/events/coordinator/my-events` | Admin, coordinator | List the current coordinator's events. |
+| `GET` | `/events/:id` | Public | Get an event by ID. |
+| `POST` | `/events` | Admin, coordinator | Create an event. |
+| `PUT` | `/events/:id` | Admin, owning coordinator | Update an event. |
+| `DELETE` | `/events/:id` | Admin, owning coordinator | Delete an event. |
 
-The application has been validated with MongoDB Atlas and production deployment checks, including:
+### Registrations, attendance, and certificates
 
-* Authentication and JWT cookie flow
-* MongoDB Atlas connectivity
-* Seed data relationships
-* Duplicate-safe repeated seeding
-* Event registration relationships
-* Attendance relationships
-* Certificate relationships
-* Certificate verification data
-* Notification recipients
-* Production frontend/backend connectivity
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| `POST` | `/registrations/events/:eventId/register` | Student, admin | Register for an event. |
+| `POST` | `/registrations/register` | Student, admin | Register using `eventId` in the request body. |
+| `GET` | `/registrations/me` | Student, admin | List the current student's registrations. |
+| `DELETE` | `/registrations/:id` | Student, admin | Cancel a registration. |
+| `GET` | `/registrations/event/:eventId` | Admin, coordinator | List event participants. Use `all` for all eligible events. |
+| `PATCH` | `/registrations/:id/status` | Admin, coordinator | Update a registration status. |
+| `POST` | `/attendance/mark` | Admin, coordinator | Mark attendance using a `ticketId` or `registrationId` in the request body. |
+| `POST` | `/attendance/:registrationId` | Admin, coordinator | Mark attendance by registration ID. |
+| `GET` | `/attendance/event/:eventId` | Admin, coordinator | List attendance records for an event. |
+| `GET` | `/certificates/verify/:code` | Public | Verify a certificate ID or verification code. |
+| `GET` | `/certificates/me` | Student, admin | List the current student's certificates. |
+| `POST` | `/certificates/issue` | Admin, coordinator | Issue a certificate for an attended registration. |
+| `POST` | `/certificates/:eventId` | Admin, coordinator | Alternate certificate-issue route. |
 
-## 📌 Current Status
+### Administration
 
-**Production deployed and ready for demonstration.** 🚀
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| `GET` | `/users` | Admin | List users. |
+| `PUT` | `/users/:id` | Admin | Update a user. |
+| `GET` | `/admin/users` | Admin | List users through the admin route. |
+| `PUT` | `/admin/users/:id` | Admin | Update a user through the admin route. |
+| `GET` | `/admin/stats` | Admin | Retrieve dashboard statistics. |
+| `GET` | `/admin/reports` | Admin | Retrieve the current report/statistics payload. |
 
-## 👥 Team
+## Security notes
 
-* Akshay Anand
-* Abhishek Kumar
-* Ashwin Yadav
+- Never commit `.env` files or production credentials. They are excluded by `.gitignore`.
+- Use long, unique JWT secrets in every environment.
+- Set `CLIENT_URL` to the exact frontend origin; the API rejects browser requests from other origins.
+- The API stores tokens in HTTP-only cookies, which prevents client-side JavaScript from reading them.
+- All sensitive operations are protected by authentication and role middleware.
 
----
+## License
 
-Built as a college project to provide a centralized digital platform for campus clubs and events.
+No license file is currently included. Add one before distributing or reusing the project outside its intended academic context.
