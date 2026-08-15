@@ -4,6 +4,12 @@ Campus Connect is a full-stack campus event-management platform. It gives studen
 
 The application consists of a React single-page client and an Express/MongoDB API. Authentication uses JWTs stored in HTTP-only cookies, with role-based access control for protected workflows.
 
+## Team Members
+
+- **Akshay Anand**
+- **Abhishek Kumar**
+- **Ashwin Yaduvanshi**
+
 ## Contents
 
 - [Features](#features)
